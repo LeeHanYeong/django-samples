@@ -8,6 +8,7 @@ authors = ["lhy <dev@lhy.kr>"]
 python = "^3.7"
 django = "^3.0.4"
 pillow = "^7.0.0"
+requests = "^2.23.0"
 
 [tool.poetry.dev-dependencies]
 
