@@ -2,15 +2,15 @@ import base64
 import filecmp
 import os
 
-from django.conf import settings
+from django.contrib.staticfiles import finders
 from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from .models import SampleBase64ImageModel
 
-PATH_IMAGE = os.path.join(settings.STATIC_DIR, 'drf_base64', 'pby.jpg')
-PATH_BASE64_STR = os.path.join(settings.STATIC_DIR, 'drf_base64', 'pby.txt')
+PATH_IMAGE = finders.find(os.path.join('drf_base64', 'image', 'sample_jpg.jpg'))
+PATH_BASE64_STR = finders.find(os.path.join('drf_base64', 'image', 'sample_jpg.txt'))
 
 
 class Base64ImageConvertTest(TestCase):
@@ -32,11 +32,30 @@ class Base64ImageConvertTest(TestCase):
 
 
 class Base64ImageAPITest(APITestCase):
-    URL = '/drf_base64/'
+    URL = '/drf_base64/image/'
 
     def test_create(self):
         base64_str = open(PATH_BASE64_STR, 'rt').read()
         response = self.client.post(self.URL, {'image': base64_str})
+        self.assertIsNotNone(response.data['image'])
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(SampleBase64ImageModel.objects.count(), 1)
+        instance = SampleBase64ImageModel.objects.get(id=response.data['id'])
+        self.assertTrue(filecmp.cmp(instance.image.path, PATH_IMAGE))
+
+
+class Base64WithFilenameImageAPITest(APITestCase):
+    URL = '/drf_base64/image-name/'
+
+    def test_create(self):
+        base64_str = open(PATH_BASE64_STR, 'rt').read()
+        data = {
+            'image': {
+                'file_name': 'pby.jpg',
+                'base64_data': base64_str,
+            }
+        }
+        response = self.client.post(self.URL, data, format='json')
         self.assertIsNotNone(response.data['image'])
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(SampleBase64ImageModel.objects.count(), 1)

@@ -28,6 +28,11 @@ STATIC_ROOT = os.path.join(ROOT_DIR, '.static')
 MEDIA_ROOT = os.path.join(ROOT_DIR, '.media')
 STATICFILES_DIRS = [STATIC_DIR]
 
+# drf-yasg
+SWAGGER_SETTINGS = {
+    'DEFAULT_AUTO_SCHEMA_CLASS': 'drf_base64.doc.CustomSchema',
+}
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -38,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'django_extensions',
+    'drf_yasg',
 
     'drf_base64',
 ]
