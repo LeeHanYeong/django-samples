@@ -1,4 +1,3 @@
-from django.core.files.storage import default_storage
 from django.forms import ImageField
 from drf_extra_fields.fields import Base64FieldMixin, Base64ImageField, Base64FileField
 from rest_framework.exceptions import ValidationError
@@ -14,13 +13,12 @@ class Base64WithFilenameFieldMixin(Base64FieldMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.help_text is None:
-            self.help_text = (
-                r'An object containing keys `file_name` and `base64_data`<br>'
-                r' `file_name`: String in the form <b>"\<name\>.\<extension\>"</b><br>'
-                r' `base64_data`: Base64 encoded file string'
-            )
+            self.help_text = 'An object containing keys `file_name` and `base64_data`'
 
     def to_internal_value(self, obj):
+        if obj in (None, ''):
+            return obj
+
         if not all(key in obj for key in ('file_name', 'base64_data')):
             if self.parent.instance:
                 # If an empty value or null is not passed, returns the existing value

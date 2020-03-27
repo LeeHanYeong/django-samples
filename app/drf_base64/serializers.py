@@ -6,7 +6,7 @@ from .models import SampleBase64ImageModel, SampleBase64FileModel
 
 
 class SampleBase64ImageSerializer(serializers.ModelSerializer):
-    image = Base64ImageField(required=False)
+    image = Base64ImageField(required=False, allow_null=True)
 
     class Meta:
         model = SampleBase64ImageModel
@@ -17,7 +17,7 @@ class SampleBase64ImageSerializer(serializers.ModelSerializer):
 
 
 class SampleBase64FileSerializer(serializers.ModelSerializer):
-    file = Base64FileField(required=False)
+    file = Base64FileField(required=False, allow_null=True)
 
     class Meta:
         model = SampleBase64FileModel
@@ -28,7 +28,7 @@ class SampleBase64FileSerializer(serializers.ModelSerializer):
 
 
 class SampleBase64WithFilenameImageSerializer(serializers.ModelSerializer):
-    image = Base64WithFilenameImageField(required=False)
+    image = Base64WithFilenameImageField(required=False, allow_null=True)
 
     class Meta:
         model = SampleBase64ImageModel
@@ -39,7 +39,7 @@ class SampleBase64WithFilenameImageSerializer(serializers.ModelSerializer):
 
 
 class SampleBase64WithFilenameFileSerializer(serializers.ModelSerializer):
-    file = Base64WithFilenameFileField(required=False)
+    file = Base64WithFilenameFileField(required=False, allow_null=True)
 
     class Meta:
         model = SampleBase64FileModel
