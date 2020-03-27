@@ -8,6 +8,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from .models import SampleBase64ImageModel
+from .serializers import SampleBase64WithFilenameImageSerializer
 
 PATH_IMAGE = finders.find(os.path.join('drf_base64', 'image', 'sample_jpg.jpg'))
 PATH_BASE64_STR = finders.find(os.path.join('drf_base64', 'image', 'sample_jpg.txt'))
@@ -61,3 +62,23 @@ class Base64WithFilenameImageAPITest(APITestCase):
         self.assertEqual(SampleBase64ImageModel.objects.count(), 1)
         instance = SampleBase64ImageModel.objects.get(id=response.data['id'])
         self.assertTrue(filecmp.cmp(instance.image.path, PATH_IMAGE))
+        return instance
+
+    def test_update_ignore_url(self):
+        """
+        Response에는
+        :return:
+        """
+        # Create 1 Model instance
+        instance = self.test_create()
+        url = self.URL + f'{instance.pk}/'
+
+        retrieve_response = self.client.get(url)
+        retrieve_data = retrieve_response.data
+        retrieve_url = retrieve_data['image']
+
+        update_response = self.client.patch(url, retrieve_data, format='json')
+        update_data = update_response.data
+        update_url = update_data['image']
+        self.assertEqual(update_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(retrieve_url, update_url)
