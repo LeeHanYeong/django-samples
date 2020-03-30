@@ -83,6 +83,9 @@ class Base64WithFilenameImageAPITest(APITestCase):
             self.assertFalse(instance.image)
         self.assertEqual(SampleBase64ImageModel.objects.count(), 2)
 
+    def test_create_failed(self):
+        pass
+
     def test_update(self):
         base64_str_png = open(PATH_BASE64_STR_PNG, 'rt').read()
         instance = self._create_instance()

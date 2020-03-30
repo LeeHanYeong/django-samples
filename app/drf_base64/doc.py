@@ -1,9 +1,10 @@
+from collections import OrderedDict
+
 from drf_extra_fields.fields import Base64FieldMixin
 from drf_yasg import openapi
 from drf_yasg.app_settings import swagger_settings
 from drf_yasg.inspectors import FieldInspector, SwaggerAutoSchema, NotHandled
 from drf_yasg.renderers import ReDocRenderer, OpenAPIRenderer
-from drf_yasg.utils import get_serializer_ref_name
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 from rest_framework.fields import ImageField, FileField
@@ -29,7 +30,7 @@ class Base64ImageFieldInspector(FieldInspector):
     def process_result(self, result, method_name, obj, **kwargs):
         if issubclass(type(obj), Base64WithFilenameFieldMixin):
             result['example'] = {
-                'filename': 'pby.jpg',
+                'file_name': 'pby.jpg',
                 'base64_data': 'aHR0cHM6Ly9naXRodWIuY29tL2xlZWhhbnllb25n',
             }
         elif issubclass(type(obj), Base64FieldMixin):
@@ -44,12 +45,16 @@ class Base64ImageFieldInspector(FieldInspector):
         SwaggerType, ChildSwaggerType = self._get_partial_types(field, swagger_object_type, use_references, **kwargs)
 
         if issubclass(type(field), Base64WithFilenameFieldMixin):
-            result = openapi.Schema(type=openapi.TYPE_OBJECT)
-            # result.properties['a'] = 'apple'
+            properties = OrderedDict()
+            properties['file_name'] = openapi.Schema(
+                type=openapi.TYPE_STRING, description=r'Uploaded file name with the form **`<name>.<extension>`**')
+            properties['base64_data'] = openapi.Schema(
+                type=openapi.TYPE_STRING, description='Base64 encoded file string')
+            result = openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties=properties,
+            )
             return result
-            # openapi.TYPE_OBJECT
-            # result = SwaggerType(type=openapi.TYPE_OBJECT)
-            # return result
         elif issubclass(type(field), Base64FieldMixin):
             result = SwaggerType(type=openapi.TYPE_STRING, format=openapi.FORMAT_BASE64)
             return result
