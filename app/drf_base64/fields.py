@@ -28,7 +28,7 @@ class Base64WithFilenameFieldMixin(Base64FieldMixin):
                 else:
                     return None
             else:
-                raise ValidationError(self.INVALID_OBJECT)
+                return obj
 
         try:
             self.name, self.ext = obj['file_name'].rsplit('.', 1)

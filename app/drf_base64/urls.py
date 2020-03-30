@@ -8,6 +8,7 @@ router.register(r'image', apis.SampleBase64ImageViewSet)
 router.register(r'file', apis.SampleBase64FileViewSet)
 router.register(r'image-name', apis.SampleBase64WithFilenameImageViewSet)
 router.register(r'file-name', apis.SampleBase64WithFilenameFileViewSet)
+router.register(r'parent-image-name', apis.SampleParentWithFilenameImageViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

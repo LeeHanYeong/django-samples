@@ -1,6 +1,7 @@
 import base64
 import filecmp
 import os
+from copy import deepcopy
 
 from django.contrib.staticfiles import finders
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -9,12 +10,23 @@ from model_bakery import baker
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .models import SampleBase64ImageModel
+from .models import SampleBase64ImageModel, SampleParentModel
 
 PATH_IMAGE = finders.find(os.path.join('drf_base64', 'image', 'sample_jpg.jpg'))
 PATH_BASE64_STR = finders.find(os.path.join('drf_base64', 'image', 'sample_jpg.txt'))
 PATH_IMAGE_PNG = finders.find(os.path.join('drf_base64', 'image', 'sample_png.png'))
 PATH_BASE64_STR_PNG = finders.find(os.path.join('drf_base64', 'image', 'sample_png.txt'))
+
+URL_IMAGE = '/drf_base64/image/'
+URL_FILE = '/drf_base64/file/'
+URL_FILENAME_IMAGE = '/drf_base64/image-name/'
+URL_FILENAME_FILE = '/drf_base64/file-name/'
+URL_PARENT_IMAGE = '/drf_base64/parent-image-name/'
+
+
+def _create_image_instance(**kwargs):
+    file = SimpleUploadedFile(os.path.basename(PATH_IMAGE), open(PATH_IMAGE, 'rb').read())
+    return baker.make(SampleBase64ImageModel, image=file, **kwargs)
 
 
 class Base64ImageConvertTest(TestCase):
@@ -36,7 +48,7 @@ class Base64ImageConvertTest(TestCase):
 
 
 class Base64ImageAPITest(APITestCase):
-    URL = '/drf_base64/image/'
+    URL = URL_IMAGE
 
     def test_create(self):
         base64_str = open(PATH_BASE64_STR, 'rt').read()
@@ -48,12 +60,8 @@ class Base64ImageAPITest(APITestCase):
         self.assertTrue(filecmp.cmp(instance.image.path, PATH_IMAGE))
 
 
-class Base64WithFilenameImageAPITest(APITestCase):
-    URL = '/drf_base64/image-name/'
-
-    def _create_instance(self):
-        file = SimpleUploadedFile(os.path.basename(PATH_IMAGE), open(PATH_IMAGE, 'rb').read())
-        return baker.make(SampleBase64ImageModel, image=file)
+class WithFilenameCreateAPITest(APITestCase):
+    URL = URL_FILENAME_IMAGE
 
     def test_create(self):
         base64_str = open(PATH_BASE64_STR, 'rt').read()
@@ -83,12 +91,13 @@ class Base64WithFilenameImageAPITest(APITestCase):
             self.assertFalse(instance.image)
         self.assertEqual(SampleBase64ImageModel.objects.count(), 2)
 
-    def test_create_failed(self):
-        pass
+
+class WithFilenameUpdateAPITest(APITestCase):
+    URL = URL_FILENAME_IMAGE
 
     def test_update(self):
         base64_str_png = open(PATH_BASE64_STR_PNG, 'rt').read()
-        instance = self._create_instance()
+        instance = _create_image_instance()
         self.assertTrue(filecmp.cmp(instance.image.path, PATH_IMAGE))
 
         # Retrieve/Update URL
@@ -111,7 +120,7 @@ class Base64WithFilenameImageAPITest(APITestCase):
 
     def test_update_blank_null(self):
         for value in (None, ''):
-            instance = self._create_instance()
+            instance = _create_image_instance()
             self.assertTrue(filecmp.cmp(instance.image.path, PATH_IMAGE))
 
             # Retrieve/Update URL
@@ -133,7 +142,7 @@ class Base64WithFilenameImageAPITest(APITestCase):
         When an update is requested using the response data received by list or retrieve,
         Pass validation and verify that the field's value does not change
         """
-        instance = self._create_instance()
+        instance = _create_image_instance()
 
         # Retrieve/Update URL
         url = self.URL + f'{instance.pk}/'
@@ -147,3 +156,83 @@ class Base64WithFilenameImageAPITest(APITestCase):
         update_url = update_data['image']
         self.assertEqual(update_response.status_code, status.HTTP_200_OK)
         self.assertEqual(retrieve_url, update_url)
+
+
+class WithFilenameWritableNestedAPITest(APITestCase):
+    URL = URL_PARENT_IMAGE
+
+    def test_create(self):
+        data = {
+            'image_set': [
+                {
+                    'image': {
+                        'file_name': 'sample_jpg.jpg',
+                        'base64_data': open(PATH_BASE64_STR, 'rt').read(),
+                    },
+                },
+                {
+                    'image': {
+                        'file_name': 'sample_png.png',
+                        'base64_data': open(PATH_BASE64_STR_PNG, 'rt').read(),
+                    }
+                },
+            ],
+        }
+        response = self.client.post(self.URL, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_update(self):
+        parent = baker.make(SampleParentModel)
+        image_set = _create_image_instance(parent=parent, _quantity=2)
+
+        url = self.URL + f'{parent.pk}/'
+        response = self.client.get(url)
+        origin_data = response.data
+        self.assertTrue(filecmp.cmp(*[image.image.path for image in image_set]))
+
+        origin_image_data_1 = origin_data['image_set'][0]
+        origin_image_data_2 = origin_data['image_set'][1]
+        origin_image_1 = SampleBase64ImageModel.objects.get(id=origin_image_data_1['id'])
+        origin_image_2 = SampleBase64ImageModel.objects.get(id=origin_image_data_2['id'])
+
+        data = deepcopy(origin_data)
+        data['image_set'][1] = {
+            'image': {
+                'file_name': 'sample_png.png',
+                'base64_data': open(PATH_BASE64_STR_PNG, 'rt').read(),
+            }
+        }
+        update_response = self.client.patch(url, data, format='json')
+        self.assertEqual(update_response.status_code, status.HTTP_200_OK)
+        update_data = update_response.data
+        self.assertEqual(len(update_data['image_set']), 2)
+        self.assertEqual(SampleBase64ImageModel.objects.count(), 2)
+
+        # 2번째 이미지의 파일이 update시 주어진 파일과 같은지 검사
+        image_data_1 = update_data['image_set'][0]
+        image_data_2 = update_data['image_set'][1]
+        image_1 = SampleBase64ImageModel.objects.get(id=image_data_1['id'])
+        image_2 = SampleBase64ImageModel.objects.get(id=image_data_2['id'])
+        self.assertTrue(filecmp.cmp(image_1.image.path, PATH_IMAGE))
+        self.assertTrue(filecmp.cmp(image_2.image.path, PATH_IMAGE_PNG))
+
+        # 1번째 이미지는 같으며, update된 2번째 이미지는 다름을 확인
+        self.assertEqual(origin_image_1, image_1)
+        self.assertNotEqual(origin_image_2, image_2)
+
+        # Update시 제외된 항목의 삭제 확인
+        self.assertFalse(SampleBase64ImageModel.objects.filter(id=origin_image_data_2['id']))
+
+    def test_update_no_change(self):
+        parent = baker.make(SampleParentModel)
+        image_set = _create_image_instance(parent=parent, _quantity=2)
+
+        url = self.URL + f'{parent.pk}/'
+        response = self.client.get(url)
+        origin_data = response.data
+        self.assertTrue(filecmp.cmp(*[image.image.path for image in image_set]))
+
+        update_response = self.client.patch(url, origin_data, format='json')
+        self.assertEqual(update_response.status_code, status.HTTP_200_OK)
+        update_data = update_response.data
+        self.assertDictEqual(origin_data, update_data)

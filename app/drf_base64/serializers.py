@@ -1,8 +1,9 @@
 from drf_extra_fields.fields import Base64ImageField, Base64FileField
+from drf_writable_nested import WritableNestedModelSerializer
 from rest_framework import serializers
 
 from .fields import Base64WithFilenameImageField, Base64WithFilenameFileField
-from .models import SampleBase64ImageModel, SampleBase64FileModel
+from .models import SampleBase64ImageModel, SampleBase64FileModel, SampleParentModel
 
 
 class SampleBase64ImageSerializer(serializers.ModelSerializer):
@@ -46,4 +47,15 @@ class SampleBase64WithFilenameFileSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'file',
+        )
+
+
+class SampleParentFilenameImageSerializer(WritableNestedModelSerializer):
+    image_set = SampleBase64WithFilenameImageSerializer(many=True)
+
+    class Meta:
+        model = SampleParentModel
+        fields = (
+            'id',
+            'image_set',
         )
