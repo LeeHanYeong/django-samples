@@ -18,15 +18,27 @@ ALLOWED_HOSTS = []
 
 # Paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ROOT_DIR = os.path.dirname(BASE_DIR)
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 
 # Static
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
-STATIC_ROOT = os.path.join(ROOT_DIR, '.static')
-MEDIA_ROOT = os.path.join(ROOT_DIR, '.media')
+STATIC_ROOT = os.path.join(BASE_DIR, '.static')
+MEDIA_ROOT = os.path.join(BASE_DIR, '.media')
 STATICFILES_DIRS = [STATIC_DIR]
+
+# drf
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': (
+        'djangorestframework_camel_case.render.CamelCaseJSONRenderer',
+        'djangorestframework_camel_case.render.CamelCaseBrowsableAPIRenderer',
+    ),
+    'DEFAULT_PARSER_CLASSES': (
+        'djangorestframework_camel_case.parser.CamelCaseFormParser',
+        'djangorestframework_camel_case.parser.CamelCaseMultiPartParser',
+        'djangorestframework_camel_case.parser.CamelCaseJSONParser',
+    ),
+}
 
 # drf-yasg
 SWAGGER_SETTINGS = {
@@ -44,6 +56,7 @@ INSTALLED_APPS = [
 
     'django_extensions',
     'drf_yasg',
+    'rest_framework',
 
     'drf_base64',
 ]

@@ -1,19 +1,20 @@
 from django.forms import ImageField
 from drf_extra_fields.fields import Base64FieldMixin, Base64ImageField, Base64FileField
+from drf_yasg import openapi
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import FileField, SkipField
 
 
 class Base64WithFilenameFieldMixin(Base64FieldMixin):
-    INVALID_OBJECT = 'Must be an object containing keys "file_name" and "base64_data"'
-    INVALID_DATA = '"URL starting with http" or "Object with file_name and base64_data must be passed"'
+    INVALID_OBJECT = 'Must be an object containing keys "file_name" and "encoded_str"'
+    INVALID_DATA = '"URL starting with http" or "Object with file_name and encoded_str must be passed"'
     INVALID_FILE_NAME = 'The file name is incorrect. It should have the form "<name>.<extension>"'
     ALLOW_ALL_EXTENSIONS = False
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.help_text is None:
-            self.help_text = 'An object containing keys `file_name` and `base64_data`'
+            self.help_text = 'An object containing keys `file_name` and `encoded_str`'
 
     def to_internal_value(self, obj):
         if obj in self.EMPTY_VALUES:
@@ -21,7 +22,7 @@ class Base64WithFilenameFieldMixin(Base64FieldMixin):
         elif isinstance(obj, str) and obj.startswith('http'):
             raise SkipField()
         elif isinstance(obj, dict):
-            if not all(key in obj for key in ('file_name', 'base64_data')):
+            if not all(key in obj for key in ('file_name', 'encoded_str')):
                 raise ValidationError(self.INVALID_OBJECT)
 
             try:
@@ -32,8 +33,8 @@ class Base64WithFilenameFieldMixin(Base64FieldMixin):
             if self.ext not in self.ALLOWED_TYPES and self.ALLOW_ALL_EXTENSIONS:
                 self.ALLOWED_TYPES.append(self.ext)
 
-            base64_data = obj['base64_data']
-            return super().to_internal_value(base64_data)
+            encoded_str = obj['encoded_str']
+            return super().to_internal_value(encoded_str)
         else:
             raise ValidationError(self.INVALID_DATA)
 

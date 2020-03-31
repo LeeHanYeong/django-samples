@@ -68,7 +68,7 @@ class WithFilenameCreateAPITest(APITestCase):
         data = {
             'image': {
                 'file_name': 'pby.jpg',
-                'base64_data': base64_str,
+                'encoded_str': base64_str,
             }
         }
         response = self.client.post(self.URL, data, format='json')
@@ -109,7 +109,7 @@ class WithFilenameUpdateAPITest(APITestCase):
             **retrieve_data,
             'image': {
                 'file_name': 'weepinmie.png',
-                'base64_data': base64_str_png,
+                'encoded_str': base64_str_png,
             }
         }
         response = self.client.patch(url, data, format='json')
@@ -167,13 +167,13 @@ class WithFilenameWritableNestedAPITest(APITestCase):
                 {
                     'image': {
                         'file_name': 'sample_jpg.jpg',
-                        'base64_data': open(PATH_BASE64_STR, 'rt').read(),
+                        'encoded_str': open(PATH_BASE64_STR, 'rt').read(),
                     },
                 },
                 {
                     'image': {
                         'file_name': 'sample_png.png',
-                        'base64_data': open(PATH_BASE64_STR_PNG, 'rt').read(),
+                        'encoded_str': open(PATH_BASE64_STR_PNG, 'rt').read(),
                     }
                 },
             ],
@@ -199,7 +199,7 @@ class WithFilenameWritableNestedAPITest(APITestCase):
         data['image_set'][1] = {
             'image': {
                 'file_name': 'sample_png.png',
-                'base64_data': open(PATH_BASE64_STR_PNG, 'rt').read(),
+                'encoded_str': open(PATH_BASE64_STR_PNG, 'rt').read(),
             }
         }
         update_response = self.client.patch(url, data, format='json')

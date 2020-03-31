@@ -4,7 +4,8 @@ from drf_yasg.inspectors import SwaggerAutoSchema
 from drf_yasg.renderers import ReDocRenderer, OpenAPIRenderer
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
-from .inspector import Base64ImageFieldInspector
+
+from .inspector import Base64WithFilenameFieldInspector
 
 BaseSchemaView = get_schema_view(
     openapi.Info(
@@ -22,4 +23,4 @@ class ReDocSchemaView(BaseSchemaView):
 
 
 class CustomSchema(SwaggerAutoSchema):
-    field_inspectors = [Base64ImageFieldInspector] + swagger_settings.DEFAULT_FIELD_INSPECTORS
+    field_inspectors = [Base64WithFilenameFieldInspector] + swagger_settings.DEFAULT_FIELD_INSPECTORS
