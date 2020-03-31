@@ -8,6 +8,12 @@ class Base64WithFilenameFieldMixin(Base64FieldMixin):
     INVALID_OBJECT = 'Must be an object containing keys "file_name" and "base64_data"'
     INVALID_DATA = '"URL starting with http" or "Object with file_name and base64_data must be passed"'
     INVALID_FILE_NAME = 'The file name is incorrect. It should have the form "<name>.<extension>"'
+    ALLOWED_TYPES = (
+        "jpeg",
+        "jpg",
+        "png",
+        "gif"
+    )
     ALLOW_ALL_EXTENSIONS = False
 
     def __init__(self, *args, **kwargs):
@@ -30,7 +36,9 @@ class Base64WithFilenameFieldMixin(Base64FieldMixin):
                 raise ValidationError(self.INVALID_FILE_NAME)
 
             if self.ext not in self.ALLOWED_TYPES and self.ALLOW_ALL_EXTENSIONS:
-                self.ALLOWED_TYPES.append(self.ext)
+                ALLOWED_TYPES_LIST = list(self.ALLOWED_TYPES)
+                ALLOWED_TYPES_LIST.append(self.ext)
+                self.ALLOWED_TYPES = tuple(ALLOWED_TYPES_LIST)
 
             base64_data = obj['base64_data']
             return super().to_internal_value(base64_data)
