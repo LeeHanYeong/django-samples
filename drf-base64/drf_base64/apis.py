@@ -2,9 +2,13 @@ from rest_framework import viewsets
 
 from .models import SampleBase64ImageModel, SampleBase64FileModel, SampleParentModel
 from .serializers import (
-    SampleBase64ImageSerializer, SampleBase64FileSerializer,
-    SampleBase64WithFilenameImageSerializer, SampleBase64WithFilenameFileSerializer,
-    SampleParentFilenameImageSerializer)
+    SampleBase64ImageSerializer,
+    SampleBase64FileSerializer,
+    SampleBase64WithFilenameImageSerializer,
+    SampleBase64WithFilenameFileSerializer,
+    SampleParentFilenameImageSerializer,
+    SampleParentFilenameFileSerializer
+)
 
 
 class SampleBase64ImageViewSet(viewsets.ModelViewSet):
@@ -30,3 +34,8 @@ class SampleBase64WithFilenameFileViewSet(viewsets.ModelViewSet):
 class SampleParentWithFilenameImageViewSet(viewsets.ModelViewSet):
     queryset = SampleParentModel.objects.all()
     serializer_class = SampleParentFilenameImageSerializer
+
+
+class SampleParentWithFilenameFileViewSet(viewsets.ModelViewSet):
+    queryset = SampleParentModel.objects.all()
+    serializer_class = SampleParentFilenameFileSerializer
