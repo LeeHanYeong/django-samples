@@ -59,3 +59,14 @@ class SampleParentFilenameImageSerializer(WritableNestedModelSerializer):
             'id',
             'image_set',
         )
+
+
+class SampleParentFilenameFileSerializer(WritableNestedModelSerializer):
+    file_set = SampleBase64WithFilenameFileSerializer(many=True)
+
+    class Meta:
+        model = SampleParentModel
+        fields = (
+            'id',
+            'file_set',
+        )
