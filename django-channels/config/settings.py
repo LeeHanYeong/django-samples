@@ -25,6 +25,8 @@ SECRET_KEY = '-l@k%u!8$$_zvh5iu#kbfnp7u%ld-)%g+gbay#x2_1f_yx_o_r'
 DEBUG = True
 
 ALLOWED_HOSTS = []
+AUTH_USER_MODEL = 'members.User'
+LOGIN_URL = '/login/'
 
 # django-channels
 REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
@@ -49,8 +51,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'channels',
+    'django_extensions',
 
     'chat',
+    'members',
 ]
 
 MIDDLEWARE = [

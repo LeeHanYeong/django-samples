@@ -8,17 +8,23 @@
     <title>Chat Room</title>
 </head>
 <body>
-    <textarea id="chat-log" cols="100" rows="20"></textarea><br>
+    <textarea id="chat-log" cols="100" rows="20">{{ history.content }}</textarea><br>
     <input id="chat-message-input" type="text" size="100"><br>
     <input id="chat-message-submit" type="button" value="Send">
-    {{ room_name|json_script:"room-name" }}
+    {{ to_user_id|json_script:"to-user-id" }}
+    {{ user.id|json_script:"from-user-id" }}
     <script>
-        const roomName = JSON.parse(document.getElementById('room-name').textContent);
-        const chatSocket = new WebSocket('ws://' + window.location.host + '/ws/chat/' + roomName + '/');
+        const textarea = document.querySelector('#chat-log');
+        const fromUserId = JSON.parse(document.getElementById('from-user-id').textContent);
+        const toUserId = JSON.parse(document.getElementById('to-user-id').textContent);
+        const chatSocket = new WebSocket('ws://' + window.location.host + '/ws/chat/' + fromUserId + '/' + toUserId + '/');
 
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
             document.querySelector('#chat-log').value += (data.message + '\n');
+            setInterval(function () {
+                textarea.scrollTop = textarea.scrollHeight;
+            }, 100);
         };
 
         chatSocket.onclose = function(e) {
@@ -35,10 +41,12 @@
         document.querySelector('#chat-message-submit').onclick = function(e) {
             const messageInputDom = document.querySelector('#chat-message-input');
             const message = messageInputDom.value;
-            chatSocket.send(JSON.stringify({
-                'message': message
-            }));
-            messageInputDom.value = '';
+            if (message !== '') {
+                chatSocket.send(JSON.stringify({
+                    'message': '{{ user.username }}:' + message
+                    }));
+                messageInputDom.value = '';
+            }
         };
     </script>
 </body>
