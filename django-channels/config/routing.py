@@ -8,3 +8,5 @@ application = ProtocolTypeRouter({
         URLRouter(chat.routing.websocket_urlpatterns),
     ),
 })
+
+ASGI_APPLICATION = 'config.routing.application'
