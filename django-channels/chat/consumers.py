@@ -26,10 +26,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
         print(f'- connect -')
         self.user_id = self.scope['url_route']['kwargs']['from_user_id']
         self.to_user_id = self.scope['url_route']['kwargs']['to_user_id']
+        print('from_user:', self.user_id)
+        print('to_user  :', self.to_user_id)
         self.history = await self.get_history(self.user_id, self.to_user_id)
         self.content = self.history.content
         self.room_name = f'{self.history.id}'
         self.room_group_name = f'chat_{self.room_name}'
+        print(self.room_name)
+        print(self.room_group_name)
 
         # Join room group
         await self.channel_layer.group_add(

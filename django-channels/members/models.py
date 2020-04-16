@@ -2,37 +2,38 @@ from __future__ import annotations
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import Q
+
+
+class ChatHistoryNotExist(Exception):
+    def __str__(self):
+        return 'ChatHistoryNotExist!'
 
 
 class User(AbstractUser):
-    chat_users = models.ManyToManyField(
-        'self', through='UserChatHistory', symmetrical=True, blank=True,
-    )
+    chat_users = models.ManyToManyField('self', through='UserChatHistory', symmetrical=False, blank=True)
 
     def __str__(self):
         return f'{self.id}'
 
-    def get_history(self, other: User):
-        other_id = other if isinstance(other, int) else other.id
-        if self.chat_users.filter(id=other_id).exists():
-            try:
-                return self.user1_chat_history_set.get(user2=other)
-            except UserChatHistory.DoesNotExist:
-                try:
-                    return self.user2_chat_history_set.get(user1=other)
-                except UserChatHistory.DoesNotExist:
-                    pass
-        else:
-            self.chat_users.add(other)
-            return self.user1_chat_history_set.get(user2=other)
+    def get_history(self, other_id):
+        other = User.objects.get(id=other_id)
+        try:
+            history = UserChatHistory.objects.get(
+                Q(from_user=self, to_user=other) |
+                Q(from_user=other, to_user=self)
+            )
+        except UserChatHistory.DoesNotExist:
+            history = self.chat_history_set_by_from_user.create(to_user=other)
+        return history
 
 
 class UserChatHistory(models.Model):
-    user1 = models.ForeignKey(
-        User, on_delete=models.SET_NULL, related_name='user1_chat_history_set',
+    from_user = models.ForeignKey(
+        User, on_delete=models.SET_NULL, related_name='chat_history_set_by_from_user',
         blank=True, null=True)
-    user2 = models.ForeignKey(
-        User, on_delete=models.SET_NULL, related_name='user2_chat_history_set',
+    to_user = models.ForeignKey(
+        User, on_delete=models.SET_NULL, related_name='chat_history_set_by_to_user',
         blank=True, null=True)
     content = models.TextField(blank=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -40,12 +41,12 @@ class UserChatHistory(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['user1', 'user2'], name='unique_user1_user2'),
+            models.UniqueConstraint(fields=['from_user', 'to_user'], name='unique_users'),
         ]
 
     def __str__(self):
-        return '[{id}] (User1: {user1}, User2: {user2})'.format(
+        return '[{id}] ChatHistory(From: {from_user}, To: {to_user})'.format(
             id=self.id,
-            user1=self.user1.id,
-            user2=self.user2.id,
+            from_user=self.from_user.id,
+            to_user=self.to_user.id,
         )
