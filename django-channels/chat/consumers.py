@@ -30,6 +30,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         print('to_user  :', self.to_user_id)
         self.history = await self.get_history(self.user_id, self.to_user_id)
         self.content = self.history.content
+
+        # UserChatHistory의 id를 기준으로 Room의 이름을 정함
         self.room_name = f'{self.history.id}'
         self.room_group_name = f'chat_{self.room_name}'
         print(self.room_name)

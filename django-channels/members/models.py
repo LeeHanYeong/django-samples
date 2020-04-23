@@ -35,7 +35,7 @@ class UserChatHistory(models.Model):
     to_user = models.ForeignKey(
         User, on_delete=models.SET_NULL, related_name='chat_history_set_by_to_user',
         blank=True, null=True)
-    content = models.TextField(blank=True)
+    content = models.TextField('채팅 기록', blank=True)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
