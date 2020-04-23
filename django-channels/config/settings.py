@@ -24,7 +24,7 @@ SECRET_KEY = '-l@k%u!8$$_zvh5iu#kbfnp7u%ld-)%g+gbay#x2_1f_yx_o_r'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 AUTH_USER_MODEL = 'members.User'
 LOGIN_URL = '/login/'
 
